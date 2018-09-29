@@ -1,5 +1,6 @@
 # Import socket module 
-import socket 
+import socket
+from datetime import datetime
   
   
 class Client: 
@@ -21,7 +22,7 @@ class Client:
         try:
             # connect to server on local computer 
             self.s.connect((self.host, self.port)) 
-            print("Client connected to server {}:{}".format(self.host, self.port))
+            print("[{}] Client connected to server {}:{}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), self.host, self.port))
 
             while True: 
     
@@ -40,7 +41,7 @@ class Client:
         
                 # print the received message 
                 # here it would be a reverse of sent message 
-                print("[Received from server]", str(data.decode('utf-8'))) 
+                print("[{}] [Received from server] {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), str(data.decode('utf-8'))))
         
                 # ask the client whether he wants to continue 
                 ans = input('\n>> Do you want to continue(y/n): ') 

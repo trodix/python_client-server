@@ -1,6 +1,7 @@
 import socket
 from _thread import *
 import threading
+from datetime import datetime
 
 class TcpServer:
 
@@ -27,7 +28,7 @@ class TcpServer:
     
             # lock acquired by client 
             self.print_lock.acquire() 
-            print("[{}:{} - Connected]".format(addr[0], addr[1]))
+            print("[{}] [{}:{}] [Connected]".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), addr[0], addr[1]))
     
             # Start a new thread and return its identifier 
             start_new_thread(self.threaded, (c, addr)) 
@@ -35,16 +36,20 @@ class TcpServer:
 
     def threaded(self, c, addr):
         while True:
-            data = c.recv(1024)
+            raw = c.recv(1024)
 
-            if not data:
-                print("[{}:{} - Disconnected]".format(addr[0], addr[1]))
+            if not raw:
+                print("[{}] [{}:{}] [Disconnected]".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), addr[0], addr[1]))
                 self.print_lock.release()
                 break
 
-            print("[{}:{} - Received Data from client] {}".format(addr[0], addr[1], data))
-            data = data[::-1]
+            data = raw.decode('utf-8')
+            print("[{}] [{}:{}] [Received Data] {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), addr[0], addr[1], data))
 
-            c.send(data)
+            response = self.data_treatment(data)
+            c.send(response.encode('utf-8'))
 
         c.close()
+
+    def data_treatment(self, data):
+        return str(len(data))
