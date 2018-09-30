@@ -2,6 +2,8 @@ import socket
 from threading import Thread
 from datetime import datetime
 
+import subprocess
+
 # Multithreaded Python server : TCP Server Socket Thread Pool
 class ClientThread(Thread):
 
@@ -27,9 +29,12 @@ class ClientThread(Thread):
             data = raw.decode('utf-8')
             print("[*] [{}:{}] [{}] Received data: {}".format(self.ip, self.port, datetime.now().strftime('%Y-%m-%d %H:%M:%S'), data))
 
-            data = data[::-1]
+            response = self.data_process(data)
 
-            self.conn.send(data.encode('utf-8'))
+            self.conn.send(response.encode('utf-8'))
+
+    def data_process(self, data):
+        return data[::-1]
 
 class TcpServer:
 
@@ -42,7 +47,9 @@ class TcpServer:
     def __init__(self, ip, port, buffer_size):
         self.TCP_IP = ip
         self.TCP_PORT = port
+        self.BUFFER_SIZE = buffer_size
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     def start(self):
          

@@ -26,13 +26,17 @@ class Client:
 
             while True: 
     
-                # message you send to server 
-                message = input('\n>> Command: ')
+                message = None
+                while not message:          # message you send to server 
+                    message = input('\n>> Command: ')
+
+                if message == '!quit':
+                    break
 
                 # message sent to server 
                 self.s.send(message.encode('utf-8')) 
         
-                # messaga received from server 
+                # message received from server 
                 data = self.s.recv(1024)
 
                 if not data:
@@ -41,14 +45,14 @@ class Client:
         
                 # print the received message 
                 # here it would be a reverse of sent message 
-                print("[{}] [Received from server] {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), str(data.decode('utf-8'))))
+                print('[{}] [Received from server]\n{}'.format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), str(data.decode('utf-8'))))
         
                 # ask the client whether he wants to continue 
-                ans = input('\n>> Do you want to continue(y/n): ') 
-                if ans == 'y': 
-                    continue
-                else: 
-                    break
+                # ans = input('\n>> Do you want to continue(y/n): ') 
+                # if ans == 'y': 
+                #     continue
+                # else: 
+                #     break
 
         except ConnectionError:
             print("Unable to connect {}:{}".format(self.host, self.port))
@@ -56,3 +60,4 @@ class Client:
         finally:
             # close the connection 
             self.s.close()
+            print('Client closed')
