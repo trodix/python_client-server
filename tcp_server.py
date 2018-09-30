@@ -1,55 +1,61 @@
-import socket
-from _thread import *
-import threading
+import socket 
+from threading import Thread
 from datetime import datetime
 
-class TcpServer:
+# Multithreaded Python server : TCP Server Socket Thread Pool
+class ClientThread(Thread):
 
-    host = ""
-    port = None
-    print_lock = None
-
-    def __init__(self, port):
-        self.port = port
-        self.print_lock = threading.Lock()
-        
-
-    def run(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.bind((self.host, self.port))
-        print('socket binded to port', self.port)
-
-        s.listen()
-        print("socket is listening")
-
-        while True: 
-   
-            c, addr = s.accept() 
-    
-            # lock acquired by client 
-            self.print_lock.acquire() 
-            print("[{}] [{}:{}] [Connected]".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), addr[0], addr[1]))
-    
-            # Start a new thread and return its identifier 
-            start_new_thread(self.threaded, (c, addr)) 
-        s.close()
-
-    def threaded(self, c, addr):
-        while True:
-            raw = c.recv(1024)
+    ip = '127.0.0.1'
+    port = 8888
+    conn = None
+ 
+    def __init__(self, conn, ip, port): 
+        Thread.__init__(self) 
+        self.ip = ip 
+        self.port = port 
+        self.conn = conn
+        print("[+] [{}:{}] [{}] New server socket thread started".format(ip, str(port), datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+ 
+    def run(self): 
+        while True : 
+            raw = self.conn.recv(2048)
 
             if not raw:
-                print("[{}] [{}:{}] [Disconnected]".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), addr[0], addr[1]))
-                self.print_lock.release()
+                print("[-] [{}:{}] [{}] Disconnected".format(self.ip, self.port, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
                 break
 
             data = raw.decode('utf-8')
-            print("[{}] [{}:{}] [Received Data] {}".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), addr[0], addr[1], data))
+            print("[*] [{}:{}] [{}] Received data: {}".format(self.ip, self.port, datetime.now().strftime('%Y-%m-%d %H:%M:%S'), data))
 
-            response = self.data_treatment(data)
-            c.send(response.encode('utf-8'))
+            data = data[::-1]
 
-        c.close()
+            self.conn.send(data.encode('utf-8'))
 
-    def data_treatment(self, data):
-        return str(len(data))
+class TcpServer:
+
+    # Multithreaded Python server : TCP Server Socket Program Stub
+    TCP_IP = '' 
+    TCP_PORT = 8888 
+    BUFFER_SIZE = 1024  # Usually 1024, but we need quick response
+    threads = []
+
+    def __init__(self, ip, port, buffer_size):
+        self.TCP_IP = ip
+        self.TCP_PORT = port
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    def start(self):
+         
+        #self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
+        self.s.bind((self.TCP_IP, self.TCP_PORT)) 
+ 
+        while True: 
+            self.s.listen() 
+            print("[*] [{}] Multithreaded Python server : Waiting for connections from TCP clients...".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
+            (cli_conn, (cli_ip, cli_port)) = self.s.accept() 
+            newthread = ClientThread(cli_conn, cli_ip, cli_port) 
+            newthread.start() 
+            self.threads.append(newthread) 
+        
+        for t in self.threads: 
+            t.join() 
