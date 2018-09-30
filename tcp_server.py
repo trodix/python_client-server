@@ -2,25 +2,26 @@ import socket
 from threading import Thread
 from datetime import datetime
 
-import subprocess
-
 # Multithreaded Python server : TCP Server Socket Thread Pool
 class ClientThread(Thread):
 
     ip = '127.0.0.1'
     port = 8888
     conn = None
+    buffer_size = 1024
  
-    def __init__(self, conn, ip, port): 
+
+    def __init__(self, conn, ip, port, buffer_size): 
         Thread.__init__(self) 
         self.ip = ip 
         self.port = port 
         self.conn = conn
+        self.buffer_size = buffer_size
         print("[+] [{}:{}] [{}] New server socket thread started".format(ip, str(port), datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
  
     def run(self): 
         while True : 
-            raw = self.conn.recv(2048)
+            raw = self.conn.recv(self.buffer_size)
 
             if not raw:
                 print("[-] [{}:{}] [{}] Disconnected".format(self.ip, self.port, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
@@ -60,7 +61,7 @@ class TcpServer:
             self.s.listen() 
             print("[*] [{}] Multithreaded Python server : Waiting for connections from TCP clients...".format(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
             (cli_conn, (cli_ip, cli_port)) = self.s.accept() 
-            newthread = ClientThread(cli_conn, cli_ip, cli_port) 
+            newthread = ClientThread(cli_conn, cli_ip, cli_port, self.BUFFER_SIZE) 
             newthread.start() 
             self.threads.append(newthread) 
         
